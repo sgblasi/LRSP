@@ -1262,6 +1262,13 @@ Void TEncCavlc::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   assert(0);
 }
 
+#if LRSP
+Void TEncCavlc::codeBGSkipFlag(TComDataCU* pcCU, UInt uiAbsPartIdx)
+{
+	assert(0);
+}
+#endif
+
 Void TEncCavlc::codeSplitFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   assert(0);

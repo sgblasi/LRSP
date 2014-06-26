@@ -83,7 +83,15 @@ Void TComPic::create( Int iWidth, Int iHeight, ChromaFormat chromaFormatIDC, UIn
   {
     m_apcPicYuv[PIC_YUV_ORG]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_ORG]->create( iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth );
     m_apcPicYuv[PIC_YUV_TRUE_ORG]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_TRUE_ORG]->create( iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth );
+#if LRSP
+	m_apcPicYuv[PIC_YUV_TRUE_BKG] = new TComPicYuv;  m_apcPicYuv[PIC_YUV_TRUE_BKG]->create(iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth);
+	m_apcPicYuv[PIC_YUV_MSK] = new TComPicYuv;  m_apcPicYuv[PIC_YUV_MSK]->create(iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth);
+	m_apcPicYuv[PIC_YUV_TRUE_MSK] = new TComPicYuv;  m_apcPicYuv[PIC_YUV_TRUE_MSK]->create(iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth);
+#endif
   }
+#if LRSP
+  m_apcPicYuv[PIC_YUV_BKG] = new TComPicYuv;  m_apcPicYuv[PIC_YUV_BKG]->create(iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth);
+#endif
   m_apcPicYuv[PIC_YUV_REC]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_REC]->create( iWidth, iHeight, chromaFormatIDC, uiMaxWidth, uiMaxHeight, uiMaxDepth );
 
   // there are no SEI messages associated with this picture initially

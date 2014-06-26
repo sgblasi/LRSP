@@ -55,6 +55,10 @@ class TAppEncCfg
 protected:
   // file I/O
   Char*     m_pchInputFile;                                   ///< source file name
+#if LRSP
+  Char*     m_pchBackgroundFile;                                   ///< source file name
+  Char*     m_pchMaskFile;
+#endif
   Char*     m_pchBitstreamFile;                               ///< output bitstream file
   Char*     m_pchReconFile;                                   ///< output reconstruction file
   Double    m_adLambdaModifier[ MAX_TLAYER ];                 ///< Lambda modifier array for each temporal layer

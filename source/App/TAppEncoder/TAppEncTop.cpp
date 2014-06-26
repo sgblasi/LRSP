@@ -381,8 +381,16 @@ Void TAppEncTop::xCreateLib()
   // Video I/O
 #if RExt__INPUT_MSB_EXTENSION
   m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, m_inputBitDepth, m_MSBExtendedBitDepth, m_internalBitDepth );  // read  mode
+#if LRSP
+  m_cTVideoIOYuvBackgroundFile.open( m_pchBackgroundFile,     false, m_inputBitDepth, m_MSBExtendedBitDepth, m_internalBitDepth );  // read  mode
+  m_cTVideoIOYuvMaskFile.open(m_pchMaskFile, false, m_inputBitDepth, m_MSBExtendedBitDepth, m_internalBitDepth);  // read  mode
+#endif
 #else
   m_cTVideoIOYuvInputFile.open( m_pchInputFile,     false, m_inputBitDepth, m_internalBitDepth );  // read  mode
+#if LRSP
+  m_cTVideoIOYuvBackgroundFile.open(m_pchBackgroundFile, false, m_inputBitDepth, m_internalBitDepth);  // read  mode
+  m_cTVideoIOYuvMaskFile.open(m_pchMaskFile, false, m_inputBitDepth,m_internalBitDepth);  // read  mode
+#endif
 #endif
   m_cTVideoIOYuvInputFile.skipFrames(m_FrameSkip, m_iSourceWidth - m_aiPad[0], m_iSourceHeight - m_aiPad[1], m_InputChromaFormatIDC);
 
@@ -403,6 +411,10 @@ Void TAppEncTop::xDestroyLib()
 {
   // Video I/O
   m_cTVideoIOYuvInputFile.close();
+#if LRSP
+  m_cTVideoIOYuvBackgroundFile.close();
+  m_cTVideoIOYuvMaskFile.close();
+#endif
   m_cTVideoIOYuvReconFile.close();
   
   // Neo Decoder
@@ -436,6 +448,10 @@ Void TAppEncTop::encode()
   }
 
   TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
+#if LRSP
+  TComPicYuv*       pcPicYuvBkg = new TComPicYuv;
+  TComPicYuv*       pcPicYuvMsk = new TComPicYuv;
+#endif
   TComPicYuv*       pcPicYuvRec = NULL;
   
   // initialize internal class & member variables
@@ -455,17 +471,37 @@ Void TAppEncTop::encode()
   list<AccessUnit> outputAccessUnits; ///< list of access units to write out.  is populated by the encoding process
 
   TComPicYuv cPicYuvTrueOrg;
+#if LRSP
+  TComPicYuv cPicYuvTrueBkg;
+  TComPicYuv cPicYuvTrueMsk;
+#endif
 
   // allocate original YUV buffer
   if( m_isField )
   {
     pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+#if LRSP
+	pcPicYuvBkg->create( m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+	pcPicYuvMsk->create(m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+#endif
   cPicYuvTrueOrg.create(m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+#if LRSP
+  cPicYuvTrueBkg.create(m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+  cPicYuvTrueMsk.create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+#endif
   }
   else
   {
     pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+#if LRSP
+	pcPicYuvBkg->create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+	pcPicYuvMsk->create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+#endif
   cPicYuvTrueOrg.create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+#if LRSP
+  cPicYuvTrueBkg.create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+  cPicYuvTrueMsk.create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth);
+#endif
   }
   
   while ( !bEos )
@@ -475,7 +511,10 @@ Void TAppEncTop::encode()
 
     // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, &cPicYuvTrueOrg, ipCSC, m_aiPad, m_InputChromaFormatIDC );
-    
+#if LRSP
+	m_cTVideoIOYuvBackgroundFile.read( pcPicYuvBkg, &cPicYuvTrueBkg, ipCSC, m_aiPad, m_InputChromaFormatIDC );
+	m_cTVideoIOYuvMaskFile.read(pcPicYuvMsk, &cPicYuvTrueMsk, ipCSC, m_aiPad, m_InputChromaFormatIDC);
+#endif
     // increase number of received frames
     m_iFrameRcvd++;
     
@@ -491,10 +530,14 @@ Void TAppEncTop::encode()
       m_cTEncTop.setFramesToBeEncoded(m_iFrameRcvd);
     }
 
+#if LRSP
+	if (m_isField) m_cTEncTop.encode(bEos, flush ? 0 : pcPicYuvOrg, flush ? 0 : &cPicYuvTrueOrg, flush ? 0 : pcPicYuvBkg, flush ? 0 : &cPicYuvTrueBkg, flush ? 0 : pcPicYuvMsk, flush ? 0 : &cPicYuvTrueMsk, snrCSC, m_cListPicYuvRec, outputAccessUnits, iNumEncoded, m_isTopFieldFirst);
+	else             m_cTEncTop.encode( bEos, flush ? 0 : pcPicYuvOrg, flush ? 0 : &cPicYuvTrueOrg, flush ? 0 : pcPicYuvBkg, flush ? 0 : &cPicYuvTrueBkg, flush ? 0 : pcPicYuvMsk, flush ? 0 : &cPicYuvTrueMsk, snrCSC, m_cListPicYuvRec, outputAccessUnits, iNumEncoded );
+#else
     // call encoding function for one frame
     if ( m_isField ) m_cTEncTop.encode( bEos, flush ? 0 : pcPicYuvOrg, flush ? 0 : &cPicYuvTrueOrg, snrCSC, m_cListPicYuvRec, outputAccessUnits, iNumEncoded, m_isTopFieldFirst );
     else             m_cTEncTop.encode( bEos, flush ? 0 : pcPicYuvOrg, flush ? 0 : &cPicYuvTrueOrg, snrCSC, m_cListPicYuvRec, outputAccessUnits, iNumEncoded );
-    
+#endif
     // write bistream to file if necessary
     if ( iNumEncoded > 0 )
     {
@@ -507,9 +550,20 @@ Void TAppEncTop::encode()
 
   // delete original YUV buffer
   pcPicYuvOrg->destroy();
+#if LRSP
+  pcPicYuvBkg->destroy();
+  pcPicYuvMsk->destroy();
+#endif
   delete pcPicYuvOrg;
+#if LRSP
+  delete pcPicYuvBkg;
+  delete pcPicYuvMsk;
+#endif
   pcPicYuvOrg = NULL;
-  
+#if LRSP
+  pcPicYuvBkg = NULL;
+  pcPicYuvMsk = NULL;
+#endif
   // delete used buffers in encoder class
   m_cTEncTop.deletePicBuffer();
   cPicYuvTrueOrg.destroy();

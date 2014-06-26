@@ -353,58 +353,118 @@ Void TEncTop::deletePicBuffer()
   }
 }
 
+
+#if LRSP
 /**
- - Application has picture buffer list with size of GOP + 1
- - Picture buffer list acts like as ring buffer
- - End of the list has the latest picture
- .
- \param   flush               cause encoder to encode a partial GOP
- \param   pcPicYuvOrg         original YUV picture
- \retval  rcListPicYuvRecOut  list of reconstruction YUV pictures
- \retval  rcListBitstreamOut  list of output bitstreams
- \retval  iNumEncoded         number of encoded pictures
- */
-Void TEncTop::encode( Bool flush, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvTrueOrg, const InputColourSpaceConversion snrCSC, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded )
+- Application has picture buffer list with size of GOP + 1
+- Picture buffer list acts like as ring buffer
+- End of the list has the latest picture
+.
+\param   flush               cause encoder to encode a partial GOP
+\param   pcPicYuvOrg         original YUV picture
+\retval  rcListPicYuvRecOut  list of reconstruction YUV pictures
+\retval  rcListBitstreamOut  list of output bitstreams
+\retval  iNumEncoded         number of encoded pictures
+*/
+Void TEncTop::encode(Bool flush, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvTrueOrg, TComPicYuv* pcPicYuvBkg, TComPicYuv* pcPicYuvTrueBkg, TComPicYuv* pcPicYuvMsk, TComPicYuv* pcPicYuvTrueMsk, const InputColourSpaceConversion snrCSC, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded)
 {
-  if (pcPicYuvOrg != NULL)
-  {
-    // get original YUV
-    TComPic* pcPicCurr = NULL;
+	if (pcPicYuvOrg != NULL)
+	{
+		// get original YUV
+		TComPic* pcPicCurr = NULL;
 
-    xGetNewPicBuffer( pcPicCurr );
-    pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
-    pcPicYuvTrueOrg->copyToPic( pcPicCurr->getPicYuvTrueOrg() );
+		xGetNewPicBuffer(pcPicCurr);
+		pcPicYuvOrg->copyToPic(pcPicCurr->getPicYuvOrg());
+		pcPicYuvTrueOrg->copyToPic(pcPicCurr->getPicYuvTrueOrg());
 
-    // compute image characteristics
-    if ( getUseAdaptiveQP() )
-    {
-      m_cPreanalyzer.xPreanalyze( dynamic_cast<TEncPic*>( pcPicCurr ) );
-    }
-  }
+		pcPicYuvBkg->copyToPic(pcPicCurr->getPicYuvBkg());
+		pcPicYuvTrueBkg->copyToPic(pcPicCurr->getPicYuvTrueBkg());
+		pcPicYuvMsk->copyToPic(pcPicCurr->getPicYuvMsk());
+		pcPicYuvTrueMsk->copyToPic(pcPicCurr->getPicYuvTrueMsk());
+		// compute image characteristics
+		if (getUseAdaptiveQP())
+		{
+			m_cPreanalyzer.xPreanalyze(dynamic_cast<TEncPic*>(pcPicCurr));
+		}
+	}
 
-  if ((m_iNumPicRcvd == 0) || (!flush && (m_iPOCLast != 0) && (m_iNumPicRcvd != m_iGOPSize) && (m_iGOPSize != 0)))
-  {
-    iNumEncoded = 0;
-    return;
-  }
+	if ((m_iNumPicRcvd == 0) || (!flush && (m_iPOCLast != 0) && (m_iNumPicRcvd != m_iGOPSize) && (m_iGOPSize != 0)))
+	{
+		iNumEncoded = 0;
+		return;
+	}
 
-  if ( m_RCEnableRateControl )
-  {
-    m_cRateCtrl.initRCGOP( m_iNumPicRcvd );
-  }
+	if (m_RCEnableRateControl)
+	{
+		m_cRateCtrl.initRCGOP(m_iNumPicRcvd);
+	}
 
-  // compress GOP
-  m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut, false, false, snrCSC);
+	// compress GOP
+	m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut, false, false, snrCSC);
 
-  if ( m_RCEnableRateControl )
-  {
-    m_cRateCtrl.destroyRCGOP();
-  }
+	if (m_RCEnableRateControl)
+	{
+		m_cRateCtrl.destroyRCGOP();
+	}
 
-  iNumEncoded         = m_iNumPicRcvd;
-  m_iNumPicRcvd       = 0;
-  m_uiNumAllPicCoded += iNumEncoded;
+	iNumEncoded = m_iNumPicRcvd;
+	m_iNumPicRcvd = 0;
+	m_uiNumAllPicCoded += iNumEncoded;
 }
+#else
+/**
+- Application has picture buffer list with size of GOP + 1
+- Picture buffer list acts like as ring buffer
+- End of the list has the latest picture
+.
+\param   flush               cause encoder to encode a partial GOP
+\param   pcPicYuvOrg         original YUV picture
+\retval  rcListPicYuvRecOut  list of reconstruction YUV pictures
+\retval  rcListBitstreamOut  list of output bitstreams
+\retval  iNumEncoded         number of encoded pictures
+*/
+Void TEncTop::encode(Bool flush, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvTrueOrg, const InputColourSpaceConversion snrCSC, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded)
+{
+	if (pcPicYuvOrg != NULL)
+	{
+		// get original YUV
+		TComPic* pcPicCurr = NULL;
+
+		xGetNewPicBuffer(pcPicCurr);
+		pcPicYuvOrg->copyToPic(pcPicCurr->getPicYuvOrg());
+		pcPicYuvTrueOrg->copyToPic(pcPicCurr->getPicYuvTrueOrg());
+		// compute image characteristics
+		if (getUseAdaptiveQP())
+		{
+			m_cPreanalyzer.xPreanalyze(dynamic_cast<TEncPic*>(pcPicCurr));
+		}
+	}
+
+	if ((m_iNumPicRcvd == 0) || (!flush && (m_iPOCLast != 0) && (m_iNumPicRcvd != m_iGOPSize) && (m_iGOPSize != 0)))
+	{
+		iNumEncoded = 0;
+		return;
+	}
+
+	if (m_RCEnableRateControl)
+	{
+		m_cRateCtrl.initRCGOP(m_iNumPicRcvd);
+	}
+
+	// compress GOP
+	m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut, false, false, snrCSC);
+
+	if (m_RCEnableRateControl)
+	{
+		m_cRateCtrl.destroyRCGOP();
+	}
+
+	iNumEncoded = m_iNumPicRcvd;
+	m_iNumPicRcvd = 0;
+	m_uiNumAllPicCoded += iNumEncoded;
+}
+#endif
+
 
 /**------------------------------------------------
  Separate interlaced frame into two fields
@@ -428,85 +488,200 @@ void separateFields(Pel* org, Pel* dstField, UInt stride, UInt width, UInt heigh
   
 }
 
+
+#if LRSP
+Void TEncTop::encode(Bool flush, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvTrueOrg, TComPicYuv* pcPicYuvBkg, TComPicYuv* pcPicYuvTrueBkg, TComPicYuv* pcPicYuvMsk, TComPicYuv* pcPicYuvTrueMsk, const InputColourSpaceConversion snrCSC, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded, bool isTff)
+{
+	iNumEncoded = 0;
+
+	for (int fieldNum = 0; fieldNum<2; fieldNum++)
+	{
+		if (pcPicYuvOrg)
+		{
+
+			/* -- field initialization -- */
+			const Bool isTopField = isTff == (fieldNum == 0);
+
+			TComPic *pcField;
+			xGetNewPicBuffer(pcField);
+#if !HM_CLEANUP_SAO
+			pcField->getPicSym()->allocSaoParam(&m_cEncSAO);   // where is this normally?
+#endif
+			pcField->setReconMark(false);                     // where is this normally?
+
+			if (fieldNum == 1)                                   // where is this normally?
+			{
+				TComPicYuv* rpcPicYuvRec;
+
+				// org. buffer
+				if (rcListPicYuvRecOut.size() >= (UInt)m_iGOPSize + 1) // need to maintain field 0 in list of RecOuts while processing field 1. Hence +1 on m_iGOPSize.
+				{
+					rpcPicYuvRec = rcListPicYuvRecOut.popFront();
+				}
+				else
+				{
+					rpcPicYuvRec = new TComPicYuv;
+					rpcPicYuvRec->create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+				}
+				rcListPicYuvRecOut.pushBack(rpcPicYuvRec);
+			}
+
+			pcField->getSlice(0)->setPOC(m_iPOCLast);        // superfluous?
+			pcField->getPicYuvRec()->setBorderExtension(false);// where is this normally?
+
+			pcField->setTopField(isTopField);                  // interlaced requirement
+
+			for (UInt componentIndex = 0; componentIndex < pcPicYuvOrg->getNumberValidComponents(); componentIndex++)
+			{
+				const ComponentID component = ComponentID(componentIndex);
+				const UInt stride = pcPicYuvOrg->getStride(component);
+
+				separateFields((pcPicYuvOrg->getBuf(component) + pcPicYuvOrg->getMarginX(component) + (pcPicYuvOrg->getMarginY(component) * stride)),
+					pcField->getPicYuvOrg()->getAddr(component),
+					pcPicYuvOrg->getStride(component),
+					pcPicYuvOrg->getWidth(component),
+					pcPicYuvOrg->getHeight(component),
+					isTopField);
+
+				separateFields((pcPicYuvTrueOrg->getBuf(component) + pcPicYuvTrueOrg->getMarginX(component) + (pcPicYuvTrueOrg->getMarginY(component) * stride)),
+					pcField->getPicYuvTrueOrg()->getAddr(component),
+					pcPicYuvTrueOrg->getStride(component),
+					pcPicYuvTrueOrg->getWidth(component),
+					pcPicYuvTrueOrg->getHeight(component),
+					isTopField);
+
+
+				separateFields((pcPicYuvBkg->getBuf(component) + pcPicYuvBkg->getMarginX(component) + (pcPicYuvBkg->getMarginY(component) * stride)),
+					pcField->getPicYuvBkg()->getAddr(component),
+					pcPicYuvBkg->getStride(component),
+					pcPicYuvBkg->getWidth(component),
+					pcPicYuvBkg->getHeight(component),
+					isTopField);
+
+				separateFields((pcPicYuvTrueBkg->getBuf(component) + pcPicYuvTrueBkg->getMarginX(component) + (pcPicYuvTrueBkg->getMarginY(component) * stride)),
+					pcField->getPicYuvTrueBkg()->getAddr(component),
+					pcPicYuvTrueBkg->getStride(component),
+					pcPicYuvTrueBkg->getWidth(component),
+					pcPicYuvTrueBkg->getHeight(component),
+					isTopField);
+
+				separateFields((pcPicYuvMsk->getBuf(component) + pcPicYuvMsk->getMarginX(component) + (pcPicYuvMsk->getMarginY(component) * stride)),
+					pcField->getPicYuvMsk()->getAddr(component),
+					pcPicYuvMsk->getStride(component),
+					pcPicYuvMsk->getWidth(component),
+					pcPicYuvMsk->getHeight(component),
+					isTopField);
+
+				separateFields((pcPicYuvTrueMsk->getBuf(component) + pcPicYuvTrueMsk->getMarginX(component) + (pcPicYuvTrueMsk->getMarginY(component) * stride)),
+					pcField->getPicYuvTrueMsk()->getAddr(component),
+					pcPicYuvTrueMsk->getStride(component),
+					pcPicYuvTrueMsk->getWidth(component),
+					pcPicYuvTrueMsk->getHeight(component),
+					isTopField);
+
+			}
+
+			// compute image characteristics
+			if (getUseAdaptiveQP())
+			{
+				m_cPreanalyzer.xPreanalyze(dynamic_cast<TEncPic*>(pcField));
+			}
+		}
+
+		if (m_iNumPicRcvd && ((flush&&fieldNum == 1) || (m_iPOCLast / 2) == 0 || m_iNumPicRcvd == m_iGOPSize))
+		{
+			// compress GOP
+			m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut, true, isTff, snrCSC);
+
+			iNumEncoded += m_iNumPicRcvd;
+			m_uiNumAllPicCoded += m_iNumPicRcvd;
+			m_iNumPicRcvd = 0;
+		}
+	}
+}
+
+#else
 Void TEncTop::encode(Bool flush, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvTrueOrg, const InputColourSpaceConversion snrCSC, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded, bool isTff)
 {
-  iNumEncoded = 0;
+	iNumEncoded = 0;
 
-  for (int fieldNum=0; fieldNum<2; fieldNum++)
-  {
-    if (pcPicYuvOrg)
-    {
+	for (int fieldNum = 0; fieldNum<2; fieldNum++)
+	{
+		if (pcPicYuvOrg)
+		{
 
-      /* -- field initialization -- */
-      const Bool isTopField=isTff==(fieldNum==0);
+			/* -- field initialization -- */
+			const Bool isTopField = isTff == (fieldNum == 0);
 
-      TComPic *pcField;
-      xGetNewPicBuffer( pcField );
+			TComPic *pcField;
+			xGetNewPicBuffer(pcField);
 #if !HM_CLEANUP_SAO
-      pcField->getPicSym()->allocSaoParam(&m_cEncSAO);   // where is this normally?
+			pcField->getPicSym()->allocSaoParam(&m_cEncSAO);   // where is this normally?
 #endif
-      pcField->setReconMark (false);                     // where is this normally?
+			pcField->setReconMark (false);                     // where is this normally?
 
-      if (fieldNum==1)                                   // where is this normally?
-      {
-        TComPicYuv* rpcPicYuvRec;
+			if (fieldNum == 1)                                   // where is this normally?
+			{
+				TComPicYuv* rpcPicYuvRec;
 
-        // org. buffer
-        if ( rcListPicYuvRecOut.size() >= (UInt)m_iGOPSize+1 ) // need to maintain field 0 in list of RecOuts while processing field 1. Hence +1 on m_iGOPSize.
-        {
-          rpcPicYuvRec = rcListPicYuvRecOut.popFront();
-        }
-        else
-        {
-          rpcPicYuvRec = new TComPicYuv;
-          rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
-        }
-        rcListPicYuvRecOut.pushBack( rpcPicYuvRec );
-      }
+				// org. buffer
+				if (rcListPicYuvRecOut.size() >= (UInt)m_iGOPSize + 1) // need to maintain field 0 in list of RecOuts while processing field 1. Hence +1 on m_iGOPSize.
+				{
+					rpcPicYuvRec = rcListPicYuvRecOut.popFront();
+				}
+				else
+				{
+					rpcPicYuvRec = new TComPicYuv;
+					rpcPicYuvRec->create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+				}
+				rcListPicYuvRecOut.pushBack(rpcPicYuvRec);
+			}
 
-      pcField->getSlice(0)->setPOC( m_iPOCLast );        // superfluous?
-      pcField->getPicYuvRec()->setBorderExtension(false);// where is this normally?
+			pcField->getSlice(0)->setPOC(m_iPOCLast);        // superfluous?
+			pcField->getPicYuvRec()->setBorderExtension(false);// where is this normally?
 
-      pcField->setTopField(isTopField);                  // interlaced requirement
+			pcField->setTopField(isTopField);                  // interlaced requirement
 
-      for (UInt componentIndex = 0; componentIndex < pcPicYuvOrg->getNumberValidComponents(); componentIndex++)
-      {
-        const ComponentID component = ComponentID(componentIndex);
-        const UInt stride = pcPicYuvOrg->getStride(component);
+			for (UInt componentIndex = 0; componentIndex < pcPicYuvOrg->getNumberValidComponents(); componentIndex++)
+			{
+				const ComponentID component = ComponentID(componentIndex);
+				const UInt stride = pcPicYuvOrg->getStride(component);
 
-        separateFields((pcPicYuvOrg->getBuf(component) + pcPicYuvOrg->getMarginX(component) + (pcPicYuvOrg->getMarginY(component) * stride)),
-                       pcField->getPicYuvOrg()->getAddr(component),
-                       pcPicYuvOrg->getStride(component),
-                       pcPicYuvOrg->getWidth(component),
-                       pcPicYuvOrg->getHeight(component),
-                       isTopField);
-  
-        separateFields((pcPicYuvTrueOrg->getBuf(component) + pcPicYuvTrueOrg->getMarginX(component) + (pcPicYuvTrueOrg->getMarginY(component) * stride)),
-                       pcField->getPicYuvTrueOrg()->getAddr(component),
-                       pcPicYuvTrueOrg->getStride(component),
-                       pcPicYuvTrueOrg->getWidth(component),
-                       pcPicYuvTrueOrg->getHeight(component),
-                       isTopField);
-      }
+				separateFields((pcPicYuvOrg->getBuf(component) + pcPicYuvOrg->getMarginX(component) + (pcPicYuvOrg->getMarginY(component) * stride)),
+					pcField->getPicYuvOrg()->getAddr(component),
+					pcPicYuvOrg->getStride(component),
+					pcPicYuvOrg->getWidth(component),
+					pcPicYuvOrg->getHeight(component),
+					isTopField);
 
-      // compute image characteristics
-      if ( getUseAdaptiveQP() )
-      {
-        m_cPreanalyzer.xPreanalyze( dynamic_cast<TEncPic*>( pcField ) );
-      }
-    }
-    
-    if ( m_iNumPicRcvd && ((flush&&fieldNum==1) || (m_iPOCLast/2)==0 || m_iNumPicRcvd==m_iGOPSize ) )
-    {
-      // compress GOP
-      m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut, true, isTff, snrCSC);
+				separateFields((pcPicYuvTrueOrg->getBuf(component) + pcPicYuvTrueOrg->getMarginX(component) + (pcPicYuvTrueOrg->getMarginY(component) * stride)),
+					pcField->getPicYuvTrueOrg()->getAddr(component),
+					pcPicYuvTrueOrg->getStride(component),
+					pcPicYuvTrueOrg->getWidth(component),
+					pcPicYuvTrueOrg->getHeight(component),
+					isTopField);
+			}
 
-      iNumEncoded += m_iNumPicRcvd;
-      m_uiNumAllPicCoded += m_iNumPicRcvd;
-      m_iNumPicRcvd = 0;
-    }
-  }
+			// compute image characteristics
+			if (getUseAdaptiveQP())
+			{
+				m_cPreanalyzer.xPreanalyze(dynamic_cast<TEncPic*>(pcField));
+			}
+		}
+
+		if (m_iNumPicRcvd && ((flush&&fieldNum == 1) || (m_iPOCLast / 2) == 0 || m_iNumPicRcvd == m_iGOPSize))
+		{
+			// compress GOP
+			m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut, true, isTff, snrCSC);
+
+			iNumEncoded += m_iNumPicRcvd;
+			m_uiNumAllPicCoded += m_iNumPicRcvd;
+			m_iNumPicRcvd = 0;
+		}
+	}
 }
+
+#endif
 
 // ====================================================================================================================
 // Protected member functions

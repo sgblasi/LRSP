@@ -54,7 +54,19 @@ namespace po = df::program_options_lite;
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-
+#if LRSP
+static inline ChromaFormat numberToChromaFormat(const Int val)
+{
+	switch (val)
+	{
+	case 400: return CHROMA_400; break;
+	case 420: return CHROMA_420; break;
+	case 422: return CHROMA_422; break;
+	case 444: return CHROMA_444; break;
+	default:  return NUM_CHROMA_FORMAT;
+	}
+}
+#endif
 /** \param argc number of arguments
     \param argv array of arguments
  */
@@ -62,6 +74,10 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
 {
   Bool do_help = false;
   string cfg_BitstreamFile;
+#if LRSP
+  string cfg_BackgroundFile;
+  Int    tmpBackgroundChromaFormat;
+#endif
   string cfg_ReconFile;
   string cfg_TargetDecLayerIdSetFile;
   string outputColourSpaceConvert;
@@ -71,6 +87,12 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
 
 
   ("help", do_help, false, "this help text")
+#if LRSP
+  ("BackgroundFile", cfg_BackgroundFile, string(""), "background input file name")
+  ("BackgroundWidth,-wdt", m_iBackgroundWidth, 0, "background picture width")
+  ("BackgroundHeight,-hgt", m_iBackgroundHeight, 0, "background picture height")
+  ("BackgroundChromaFormat", tmpBackgroundChromaFormat, 420, "background ChromaFormatIDC")
+#endif
   ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream input file name")
   ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name\n"
                                                      "YUV writing is skipped if omitted")
@@ -110,6 +132,10 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   }
 
   /* convert std::string to c string for compatability */
+#if LRSP
+  m_pchBackgroundFile = cfg_BackgroundFile.empty() ? NULL : strdup(cfg_BackgroundFile.c_str());
+  m_BackgroundChromaFormatIDC = numberToChromaFormat(tmpBackgroundChromaFormat);
+#endif
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
 
@@ -166,5 +192,6 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
 
   return true;
 }
+
 
 //! \}

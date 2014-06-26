@@ -142,6 +142,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 
     rpcPic->create ( pcSlice->getSPS()->getPicWidthInLumaSamples(), pcSlice->getSPS()->getPicHeightInLumaSamples(), pcSlice->getSPS()->getChromaFormatIdc(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth,
                      conformanceWindow, defaultDisplayWindow, numReorderPics, true);
+
 #if !HM_CLEANUP_SAO
     rpcPic->getPicSym()->allocSaoParam(&m_cSAO);
 #endif
@@ -180,8 +181,11 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
     m_cListPic.pushBack( rpcPic );
   }
   rpcPic->destroy();
+
+
   rpcPic->create ( pcSlice->getSPS()->getPicWidthInLumaSamples(), pcSlice->getSPS()->getPicHeightInLumaSamples(), pcSlice->getSPS()->getChromaFormatIdc(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth,
-                   conformanceWindow, defaultDisplayWindow, numReorderPics, true);
+	  conformanceWindow, defaultDisplayWindow, numReorderPics, true);
+
 #if !HM_CLEANUP_SAO
   rpcPic->getPicSym()->allocSaoParam(&m_cSAO);
 #endif
@@ -331,7 +335,11 @@ Void TDecTop::xActivateParameterSets()
   m_cLoopFilter.create( sps->getMaxCUDepth() );
 }
 
+#if LRSP
+Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, TComPicYuv* pcPicYuvBkg, Int &iSkipFrame, Int iPOCLastDisplay)
+#else
 Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay )
+#endif
 {
   TComPic*&   pcPic         = m_pcPic;
   m_apcSlicePilot->initSlice();
@@ -430,6 +438,12 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
     m_apcSlicePilot->applyReferencePictureSet(m_cListPic, m_apcSlicePilot->getRPS());
     //  Get a new picture buffer
     xGetNewPicBuffer (m_apcSlicePilot, pcPic);
+#if LRSP
+	if (pcPicYuvBkg != NULL)
+	{
+		pcPicYuvBkg->copyToPic(pcPic->getPicYuvBkg());
+	}
+#endif
 
     Bool isField = false;
     Bool isTff = false;
@@ -647,9 +661,9 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
     m_cTrQuant.setFlatScalingList(pcSlice->getSPS()->getChromaFormatIdc());
     m_cTrQuant.setUseScalingList(false);
   }
-
   //  Decode a picture
   m_cGopDecoder.decompressSlice(nalu.m_Bitstream, pcPic);
+
 
   m_bFirstSliceInPicture = false;
   m_uiSliceIdx++;
@@ -702,7 +716,11 @@ Void TDecTop::xDecodeSEI( TComInputBitstream* bs, const NalUnitType nalUnitType 
   }
 }
 
+#if LRSP
+Bool TDecTop::decode(InputNALUnit& nalu, TComPicYuv* pcPicYuvBkg, Int& iSkipFrame, Int& iPOCLastDisplay)
+#else
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
+#endif
 {
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
@@ -755,7 +773,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     case NAL_UNIT_CODED_SLICE_RADL_R:
     case NAL_UNIT_CODED_SLICE_RASL_N:
     case NAL_UNIT_CODED_SLICE_RASL_R:
-      return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
+#if LRSP
+		return xDecodeSlice(nalu, pcPicYuvBkg, iSkipFrame, iPOCLastDisplay);
+#else
+		return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
+#endif
       break;
     
     case NAL_UNIT_EOS:

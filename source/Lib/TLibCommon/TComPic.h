@@ -56,9 +56,18 @@
 class TComPic
 {
 public:
-  typedef enum { PIC_YUV_ORG=0, PIC_YUV_REC=1, PIC_YUV_TRUE_ORG=2, NUM_PIC_YUV=3 } PIC_YUV_T;
+#if LRSP
+	typedef enum { PIC_YUV_ORG = 0, PIC_YUV_REC = 1, PIC_YUV_TRUE_ORG = 2, PIC_YUV_BKG = 3, PIC_YUV_TRUE_BKG = 4, PIC_YUV_MSK = 5, PIC_YUV_TRUE_MSK = 6, NUM_PIC_YUV = 7 } PIC_YUV_T;
+#else
+	typedef enum { PIC_YUV_ORG = 0, PIC_YUV_REC = 1, PIC_YUV_TRUE_ORG = 2, NUM_PIC_YUV = 3 } PIC_YUV_T;
+#endif
+
      // TRUE_ORG is the input file without any pre-encoder colour space conversion (but with possible bit depth increment)
   TComPicYuv*   getPicYuvTrueOrg()        { return  m_apcPicYuv[PIC_YUV_TRUE_ORG]; }
+#if LRSP
+  TComPicYuv*   getPicYuvTrueBkg()        { return  m_apcPicYuv[PIC_YUV_TRUE_BKG]; }
+  TComPicYuv*   getPicYuvTrueMsk()        { return  m_apcPicYuv[PIC_YUV_TRUE_MSK]; }
+#endif
 
 private:
   UInt                  m_uiTLayer;               //  Temporal layer
@@ -118,6 +127,10 @@ public:
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
 
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[PIC_YUV_ORG]; }
+#if LRSP
+  TComPicYuv*   getPicYuvBkg()        { return  m_apcPicYuv[PIC_YUV_BKG]; }
+  TComPicYuv*   getPicYuvMsk()        { return  m_apcPicYuv[PIC_YUV_MSK]; }
+#endif
   TComPicYuv*   getPicYuvRec()        { return  m_apcPicYuv[PIC_YUV_REC]; }
 
   TComPicYuv*   getPicYuvPred()       { return  m_pcPicYuvPred; }
