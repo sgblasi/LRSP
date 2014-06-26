@@ -2720,19 +2720,6 @@ TComYuv*    pcRecoYuv)
 	do
 	{
 		const UInt uiPartOffset = tuRecurseWithPU.GetAbsPartIdxTU();
-		/*
-		//===== init pattern for luma prediction =====
-		Bool bAboveAvail = false;
-		Bool bLeftAvail = false;
-		DEBUG_STRING_NEW(sTemp2)
-		if (tuRecurseWithPU.ProcessComponentSection(COMPONENT_Y))
-			initAdiPatternChType(tuRecurseWithPU, bAboveAvail, bLeftAvail, COMPONENT_Y, true DEBUG_STRING_PASS_INTO(sTemp2));
-		*/
-		Distortion uiBestPUDistY = 0;
-		Distortion uiBestPUDistC = 0;
-		Double     dBestPUCost = MAX_DOUBLE;
-
-
 		DEBUG_STRING_NEW(sMode)
 			// set context models
 		if (m_bUseSBACRD)
