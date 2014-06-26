@@ -1560,7 +1560,100 @@ Void TEncSearch::xIntraCodingTUBlock(TComYuv*    pcOrgYuv,
 }
 
 
+#if LRSP==1
+Void
+TEncSearch::xBGSKIPCodingQT(Bool        bLumaOnly,
+TComYuv*    pcOrgYuv,
+TComYuv*    pcPredYuv,
+TComYuv*    pcResiYuv,
+TComTU&     rTu)
+{
+	TComDataCU   *pcCU = rTu.getCU();
+	const UInt    uiAbsPartIdx = rTu.GetAbsPartIdxTU();
+	const UInt    uiFullDepth = rTu.GetTransformDepthTotal();
+	const UInt    uiTrDepth = rTu.GetTransformDepthRel();
+	const UInt    uiLog2TrSize = rTu.GetLog2LumaTrSize();
+	Bool    bCheckFull = (uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize());
+	Bool    bCheckSplit = (uiLog2TrSize  >  pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx));
+	const UInt    numValidComp = (bLumaOnly) ? 1 : pcOrgYuv->getNumberValidComponents();
 
+	Int maxTuSize = pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize();
+	Int isIntraSlice = (pcCU->getSlice()->getSliceType() == I_SLICE);
+	// if maximum RD-penalty don't check TU size 32x32
+
+	if (bCheckFull)
+	{
+		//----- store original entropy coding status -----
+		if (m_bUseSBACRD && bCheckSplit)
+		{
+			m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiFullDepth][CI_QT_TRAFO_ROOT]);
+		}
+		//----- code luma/chroma block with given intra prediction mode and store Cbf-----
+		for (UInt ch = COMPONENT_Y; ch<numValidComp; ch++)
+		{
+			const ComponentID compID = ComponentID(ch);
+
+			if (rTu.ProcessComponentSection(compID))
+			{
+				const UInt totalAdjustedDepthChan = rTu.GetTransformDepthTotalAdj(compID);
+				pcCU->setTransformSkipSubParts(0, compID, uiAbsPartIdx, totalAdjustedDepthChan);
+			}
+			UInt dummy = 0;
+			xIntraCodingTUBlock(pcOrgYuv, pcPredYuv, pcResiYuv, dummy, compID, rTu DEBUG_STRING_PASS_INTO(sDebug));
+
+
+		}
+		return;
+	}
+
+	if (bCheckSplit)
+	{
+		//----- store full entropy coding status, load original entropy coding status -----
+		if (m_bUseSBACRD)
+		{
+		  m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiFullDepth][CI_QT_TRAFO_ROOT]);
+		}
+		//----- code splitted block -----
+		Double     dSplitCost = 0.0;
+		Distortion uiSplitDist[MAX_NUM_CHANNEL_TYPE] = { 0, 0 };
+		UInt       uiSplitCbf[MAX_NUM_COMPONENT] = { 0, 0, 0 };
+
+		TComTURecurse tuRecurseChild(rTu, false);
+		do
+		{
+
+			xBGSKIPCodingQT(bLumaOnly, pcOrgYuv, pcPredYuv, pcResiYuv, tuRecurseChild );
+
+			for (UInt ch = 0; ch<numValidComp; ch++)
+			{
+				uiSplitCbf[ch] |= pcCU->getCbf(tuRecurseChild.GetAbsPartIdxTU(), ComponentID(ch), tuRecurseChild.GetTransformDepthRel());
+			}
+		} while (tuRecurseChild.nextSection(rTu));
+
+		UInt    uiPartsDiv = rTu.GetAbsPartIdxNumParts();
+		for (UInt ch = COMPONENT_Y; ch<numValidComp; ch++)
+		{
+			if (uiSplitCbf[ch])
+			{
+				const UInt flag = 1 << uiTrDepth;
+				const ComponentID compID = ComponentID(ch);
+				UChar *pBase = pcCU->getCbf(compID);
+				for (UInt uiOffs = 0; uiOffs < uiPartsDiv; uiOffs++)
+				{
+					pBase[uiAbsPartIdx + uiOffs] |= flag;
+				}
+			}
+		}
+		//----- restore context states -----
+		if (m_bUseSBACRD)
+		{
+			m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiFullDepth][CI_QT_TRAFO_ROOT]);
+		}
+		return;
+	}
+}
+
+#endif
 
 
 Void
@@ -2647,17 +2740,7 @@ TComYuv*    pcRecoYuv)
 			m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
 		}
 
-		// determine residual for partition
-		Distortion uiPUDistY = 0;
-		Distortion uiPUDistC = 0;
-		Double     dPUCost = 0.0;
-
-#if HHI_RQT_INTRA_SPEEDUP
-		xRecurIntraCodingQT(true, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, false, dPUCost, tuRecurseWithPU DEBUG_STRING_PASS_INTO(sMode));
-#else
-		xRecurIntraCodingQT(true, pcOrgYuv, pcPredYuv, pcResiYuv, uiPUDistY, uiPUDistC, dPUCost, tuRecurseWithPU DEBUG_STRING_PASS_INTO(sMode));
-#endif
-
+		xBGSKIPCodingQT(true, pcOrgYuv, pcPredYuv, pcResiYuv, tuRecurseWithPU);
 
 		DEBUG_STRING_SWAP(sPU, sMode)
 

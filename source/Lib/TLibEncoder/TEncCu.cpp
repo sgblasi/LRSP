@@ -1658,19 +1658,9 @@ Void TEncCu::xCheckBGSKIP(TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool& 
 		rpcTempCU->getTotalDistortion() = 0;
 
 		//HERE: Encode residuals
-		Double dummy = 0;
-		xCheckRDCostIntra(rpcBestCU, rpcTempCU, dummy, SIZE_2Nx2N);
-		Distortion uiPreCalcDistC = 0;
-#if RExt__O0202_CROSS_COMPONENT_DECORRELATION
-		m_pcPredSearch->estIntraPredQT(rpcTempCU, m_ppcOrigYuv[uiDepth], m_ppcPredYuvTemp[uiDepth], m_ppcResiYuvTemp[uiDepth], m_ppcRecoYuvTemp[uiDepth], resiLuma, uiPreCalcDistC, true DEBUG_STRING_PASS_INTO(sTest));
-#else
-		m_pcPredSearch->estIntraPredQT(rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcBackgroundYuv[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth], uiPreCalcDistC, true DEBUG_STRING_PASS_INTO(sTest));
-#endif
-
-		//m_ppcRecoYuvTemp[uhDepth]->copyToPicComponent(COMPONENT_Y, rpcTempCU->getPic()->getPicYuvRec(), rpcTempCU->getAddr(), rpcTempCU->getZorderIdxInCU());
-
-
-
+		//Double dummy = 0;
+		//xCheckRDCostIntra(rpcBestCU, rpcTempCU, dummy, SIZE_2Nx2N);
+		m_pcPredSearch->estBGSKIPResQT(rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcBackgroundYuv[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcRecoYuvTemp[uhDepth]);
 		///////////////////////////
 
 

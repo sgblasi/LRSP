@@ -341,6 +341,14 @@ protected:
                                          ,Int           default0Save1Load2 = 0
                                    );
 
+#if LRSP==1
+  Void  xBGSKIPCodingQT(Bool        bLumaOnly,
+	  TComYuv*    pcOrgYuv,
+	  TComYuv*    pcPredYuv,
+	  TComYuv*    pcResiYuv,
+	  TComTU      &rTu);
+#endif
+
   Void  xRecurIntraCodingQT       ( Bool        bLumaOnly,
                                     TComYuv*    pcOrgYuv,
                                     TComYuv*    pcPredYuv,
