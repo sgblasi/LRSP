@@ -76,6 +76,13 @@ Void TAppDecTop::destroy()
     free (m_pchReconFile);
     m_pchReconFile = NULL;
   }
+#if LRSP
+  if (m_pchBackgroundFile)
+  {
+	  free(m_pchBackgroundFile);
+	  m_pchBackgroundFile = NULL;
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -107,12 +114,17 @@ Void TAppDecTop::decode()
   // create & initialize internal classes
   xCreateDecLib();
   xInitDecLib  ();
+#if LRSP
+  TComPicYuv*       pcPicYuvBkg = new TComPicYuv;
+  pcPicYuvBkg->create(m_iBackgroundWidth, m_iBackgroundHeight, m_BackgroundChromaFormatIDC, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth);
+  Bool bNewFrame = true;
+#endif
   m_iPOCLastDisplay += m_iSkipFrame;      // set the last displayed POC correctly for skip forward.
 
   // main decoder loop
   Bool openedReconFile = false; // reconstruction file not yet opened. (must be performed after SPS is seen)
   Bool loopFiltered = false;
-  
+
   while (!!bitstreamFile)
   {
     /* location serves to work around a design fault in the decoder, whereby
@@ -144,6 +156,7 @@ Void TAppDecTop::decode()
     }
     else
     {
+
       read(nalu, nalUnit);
       if( (m_iMaxTemporalLayer >= 0 && nalu.m_temporalId > m_iMaxTemporalLayer) || !isNaluWithinTargetDecLayerIdSet(&nalu)  )
       {
@@ -151,7 +164,20 @@ Void TAppDecTop::decode()
       }
       else
       {
+#if LRSP
+		  if (bNewFrame && m_pchBackgroundFile)
+		  {
+			  bNewFrame = false;
+			  Int  aiPad[2] = { 0, 0 };
+			  m_cTVideoIOYuvBackgroundFile.read(pcPicYuvBkg, pcPicYuvBkg, IPCOLOURSPACE_UNCHANGED, aiPad, m_BackgroundChromaFormatIDC);
+		  }
+
+
+
+		bNewPicture = m_cTDecTop.decode(nalu, pcPicYuvBkg, m_iSkipFrame, m_iPOCLastDisplay);
+#else
         bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
+#endif
         if (bNewPicture)
         {
           bitstreamFile.clear();
@@ -211,17 +237,25 @@ Void TAppDecTop::decode()
       // write reconstruction to file
       if(bNewPicture)
       {
+#if LRSP
+		bNewFrame = true;
+#endif
         xWriteOutput( pcListPic, nalu.m_temporalId );
       }
     }
   }
-  
+
   xFlushOutput( pcListPic );
   // delete buffers
   m_cTDecTop.deletePicBuffer();
   
   // destroy internal classes
   xDestroyDecLib();
+#if LRSP
+  pcPicYuvBkg->destroy();
+  delete pcPicYuvBkg;
+  pcPicYuvBkg = NULL;
+#endif
 }
 
 // ====================================================================================================================
@@ -230,6 +264,15 @@ Void TAppDecTop::decode()
 
 Void TAppDecTop::xCreateDecLib()
 {
+#if LRSP
+	Int  bitdepth[2] = { 8, 8 };
+#if RExt__INPUT_MSB_EXTENSION
+	
+	m_cTVideoIOYuvBackgroundFile.open(m_pchBackgroundFile, false, bitdepth, bitdepth, g_bitDepth);
+#else
+	m_cTVideoIOYuvBackgroundFile.open(m_pchBackgroundFile, false, bitdepth, g_bitDepth); // write mode
+#endif
+#endif
   // create decoder class
   m_cTDecTop.create();
 }
@@ -238,8 +281,11 @@ Void TAppDecTop::xDestroyDecLib()
 {
   if ( m_pchReconFile )
   {
-    m_cTVideoIOYuvReconFile. close();
+    m_cTVideoIOYuvReconFile.close();
   }
+#if LRSP
+  m_cTVideoIOYuvBackgroundFile.close();
+#endif
   
   // destroy decoder class
   m_cTDecTop.destroy();

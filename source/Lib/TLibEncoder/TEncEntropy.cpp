@@ -125,6 +125,13 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
 
+#if LRSP
+Void TEncEntropy::encodeBGSkipFlag(TComDataCU* pcCU, UInt uiAbsPartIdx)
+{
+	m_pcEntropyCoderIf->codeBGSkipFlag(pcCU, uiAbsPartIdx);
+}
+#endif
+
 /** encode merge flag
  * \param pcCU
  * \param uiAbsPartIdx

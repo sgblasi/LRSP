@@ -133,6 +133,9 @@ private:
   // -------------------------------------------------------------------------------------------------------------------
 
   Bool*          m_skipFlag;           ///< array of skip flags
+#if LRSP
+  Bool*          m_bgskipFlag;
+#endif
   Char*          m_pePartSize;         ///< array of partition sizes
   Char*          m_pePredMode;         ///< array of prediction modes
 #if RExt__O0202_CROSS_COMPONENT_DECORRELATION
@@ -285,7 +288,12 @@ public:
   Bool          getSkipFlag            (UInt idx)                { return m_skipFlag[idx];     }
   Void          setSkipFlag           ( UInt idx, Bool skip)     { m_skipFlag[idx] = skip;   }
   Void          setSkipFlagSubParts   ( Bool skip, UInt absPartIdx, UInt depth );
-
+#if LRSP
+  Bool*         getBGSkipFlag()                        { return m_bgskipFlag; }
+  Bool          getBGSkipFlag(UInt idx)                { return m_bgskipFlag[idx]; }
+  Void          setBGSkipFlag(UInt idx, Bool skip)     { m_bgskipFlag[idx] = skip; }
+  Void          setBGSkipFlagSubParts(Bool skip, UInt absPartIdx, UInt depth);
+#endif
   Char*         getPredictionMode     ()                        { return m_pePredMode;        }
   PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
   Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
@@ -525,6 +533,9 @@ public:
   Bool          isIntra            ( UInt uiPartIdx )  const { return m_pePredMode[ uiPartIdx ] == MODE_INTRA;                                              }
   Bool          isInter            ( UInt uiPartIdx )  const { return m_pePredMode[ uiPartIdx ] == MODE_INTER;                                              }
   Bool          isSkipped          ( UInt uiPartIdx );                                                     ///< SKIP (no residual)
+#if LRSP
+  Bool          isBGSkipped(UInt uiPartIdx);
+#endif
   Bool          isBipredRestriction( UInt puIdx );
 
 #if RExt__O0186_DISABLE_NONINTRA_ROTATION == 0

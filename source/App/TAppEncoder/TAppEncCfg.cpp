@@ -68,6 +68,11 @@ namespace po = df::program_options_lite;
 
 TAppEncCfg::TAppEncCfg()
 : m_pchInputFile()
+#if LRSP
+, m_pchBackgroundFile()
+, m_pchMaskFile()
+, m_pchSparseFile()
+#endif
 , m_pchBitstreamFile()
 , m_pchReconFile()
 , m_inputColourSpaceConvert(IPCOLOURSPACE_UNCHANGED)
@@ -106,6 +111,11 @@ TAppEncCfg::~TAppEncCfg()
     m_targetPivotValue = NULL;
   }
   free(m_pchInputFile);
+#if LRSP
+  free(m_pchBackgroundFile);
+  free(m_pchMaskFile);
+  free(m_pchSparseFile);
+#endif
   free(m_pchBitstreamFile);
   free(m_pchReconFile);
   free(m_pchdQPFile);
@@ -301,6 +311,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   Bool do_help = false;
   
   string cfg_InputFile;
+#if LRSP
+  string cfg_BackgroundFile;
+  string cfg_MaskFile;
+  string cfg_SparseFile;
+#endif
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
@@ -322,6 +337,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   // File, I/O and source parameters
   ("InputFile,i",           cfg_InputFile,                           string(""), "Original YUV input file name")
+#if LRSP
+  ("BackgroundFile,i", cfg_BackgroundFile, string(""), "Background YUV input file name")
+  ("MaskFile,i", cfg_MaskFile, string(""), "Mask YUV input file name")
+  ("SparseFile,i", cfg_SparseFile, string(""), "Sparse YUV input file name")
+#endif
   ("BitstreamFile,b",       cfg_BitstreamFile,                       string(""), "Bitstream output file name")
   ("ReconFile,o",           cfg_ReconFile,                           string(""), "Reconstructed YUV output file name")
   ("SourceWidth,-wdt",      m_iSourceWidth,                              0, "Source picture width")
@@ -662,6 +682,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
    */
   /* convert std::string to c string for compatability */
   m_pchInputFile = cfg_InputFile.empty() ? NULL : strdup(cfg_InputFile.c_str());
+#if LRSP
+  m_pchBackgroundFile = cfg_BackgroundFile.empty() ? NULL : strdup(cfg_BackgroundFile.c_str());
+  m_pchMaskFile = cfg_MaskFile.empty() ? NULL : strdup(cfg_MaskFile.c_str());
+  m_pchSparseFile = cfg_SparseFile.empty() ? NULL : strdup(cfg_SparseFile.c_str());
+#endif
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
@@ -1615,6 +1640,11 @@ Void TAppEncCfg::xPrintParameter()
 {
   printf("\n");
   printf("Input          File             : %s\n", m_pchInputFile          );
+#if LRSP
+  printf("Background     File             : %s\n", m_pchBackgroundFile    );
+  printf("Mask           File             : %s\n", m_pchMaskFile);
+  printf("Sparse         File             : %s\n", m_pchSparseFile);
+#endif
   printf("Bitstream      File             : %s\n", m_pchBitstreamFile      );
   printf("Reconstruction File             : %s\n", m_pchReconFile          );
   printf("Real     Format                 : %dx%d %dHz\n", m_iSourceWidth - m_confLeft - m_confRight, m_iSourceHeight - m_confTop - m_confBottom, m_iFrameRate );

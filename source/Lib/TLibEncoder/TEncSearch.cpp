@@ -5772,7 +5772,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
 }
 
 
-
 Void TEncSearch::xEstimateResidualQT( TComYuv    *pcResi,
                                       Double     &rdCost,
                                       UInt       &ruiBits,

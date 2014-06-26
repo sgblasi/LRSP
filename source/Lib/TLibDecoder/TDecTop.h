@@ -110,7 +110,11 @@ public:
   void setDecodedPictureHashSEIEnabled(Int enabled) { m_cGopDecoder.setDecodedPictureHashSEIEnabled(enabled); }
 
   Void  init();
+#if LRSP
+  Bool  decode(InputNALUnit& nalu, TComPicYuv* pcPicYuvBkg, Int& iSkipFrame, Int& iPOCLastDisplay);
+#else
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
+#endif
   
   Void  deletePicBuffer();
 
@@ -121,7 +125,11 @@ protected:
   Void  xCreateLostPicture (Int iLostPOC);
 
   Void      xActivateParameterSets();
+#if LRSP
+  Bool      xDecodeSlice(InputNALUnit &nalu, TComPicYuv* pcPicYuvBkg, Int &iSkipFrame, Int iPOCLastDisplay);
+#else
   Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay);
+#endif
   Void      xDecodeVPS();
   Void      xDecodeSPS();
   Void      xDecodePPS();

@@ -60,6 +60,14 @@ Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   m_pcEntropyDecoderIf->parseSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 
+#if LRSP
+Void TDecEntropy::decodeBGSkipFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
+{
+	m_pcEntropyDecoderIf->parseBGSkipFlag(pcCU, uiAbsPartIdx, uiDepth);
+}
+
+#endif
+
 
 Void TDecEntropy::decodeCUTransquantBypassFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {

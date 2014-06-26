@@ -131,6 +131,9 @@
 #endif
 #endif
 
+
+#define LRSP                                             1 ///< Use lowrank/sparse decomposition
+
 #define MAX_NUM_SAO_OFFSETS                               4
 
 #define MAX_NUM_VPS                                      16

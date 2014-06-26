@@ -118,7 +118,10 @@ public:
   //  Copy the part of Big YUV buffer to other Small YUV buffer
   Void         copyPartToYuv              ( TComYuv*    pcYuvDst,   const UInt uiSrcPartIdx ) const;
   Void         copyPartToComponent        ( const ComponentID id, TComYuv*    pcYuvDst,    const UInt uiSrcPartIdx ) const;
-  
+#if LRSP
+  Int          checkLRSPmask              ( const ComponentID id, const UInt uiPartIdx) ;
+  Void         generateOrgFromMsk(TComYuv* pcYuvMsk, TComYuv* pcYuvBkg, const ComponentID id, const UInt uiPartIdx);
+#endif
   //  Copy YUV partition buffer to other YUV partition buffer
   Void         copyPartToPartYuv          ( TComYuv*    pcYuvDst, const UInt uiPartIdx, const UInt uiWidth, const UInt uiHeight ) const;
   Void         copyPartToPartComponent    ( const ComponentID id, TComYuv*    pcYuvDst, const UInt uiPartIdx, const UInt uiWidthComponent, const UInt uiHeightComponent ) const;

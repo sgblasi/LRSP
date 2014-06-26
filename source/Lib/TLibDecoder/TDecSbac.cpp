@@ -456,6 +456,26 @@ Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   }
 }
 
+#if LRSP
+Void TDecSbac::parseBGSkipFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
+{
+	UInt uiSymbol = 0;
+	m_pcTDecBinIf->decodeBinEP(uiSymbol);
+	if (uiSymbol)
+	{
+		pcCU->setBGSkipFlagSubParts(true, uiAbsPartIdx, uiDepth);
+		pcCU->setPredModeSubParts(MODE_INTRA, uiAbsPartIdx, uiDepth);
+		pcCU->setPartSizeSubParts(SIZE_2Nx2N, uiAbsPartIdx, uiDepth);
+		pcCU->setSizeSubParts(g_uiMaxCUWidth >> uiDepth, g_uiMaxCUHeight >> uiDepth, uiAbsPartIdx, uiDepth);
+		pcCU->setMergeFlagSubParts(false, uiAbsPartIdx, 0, uiDepth);
+	}
+	else
+	{
+		pcCU->setBGSkipFlagSubParts(false, uiAbsPartIdx, uiDepth);
+	}
+}
+#endif
+
 Void TDecSbac::parseIntraBCFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {  
   UInt uiSymbol = 0;

@@ -77,6 +77,11 @@ private:
   TComYuv**               m_ppcResiYuvTemp; ///< Temporary Residual Yuv for each depth
   TComYuv**               m_ppcRecoYuvTemp; ///< Temporary Reconstruction Yuv for each depth
   TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each depth
+#if LRSP
+  TComYuv**               m_ppcBackgroundYuv;     ///< Background Yuv for each depth
+  TComYuv**               m_ppcMaskYuv;     ///< Mask Yuv for each depth
+  TComYuv**               m_ppcSparseYuv;     ///< Mask Yuv for each depth
+#endif
 
   //  Data : encoder control
   Bool                    m_bEncodeDQP;
@@ -137,6 +142,10 @@ protected:
   Void  xCheckRDCostInter   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize DEBUG_STRING_FN_DECLARE(sDebug), Bool bUseMRG = false  );
 #else
   Void  xCheckRDCostInter   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
+#endif
+#if LRSP
+  Void xCheckBGSKIP(TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool& bTestThisDepth, Bool& bTestHigherDepth, Int iQP);
+  Void xCheckThisDepth(TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool& bTestThisDepth, UChar uhDepth, UChar uhInitialDepth, Int iQP);
 #endif
 
   Void  xCheckRDCostIntra   ( TComDataCU *&rpcBestCU,

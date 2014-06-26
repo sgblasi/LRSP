@@ -60,6 +60,9 @@ private:
   UInt                m_uiMaxDepth;       ///< max. number of depth
   TComYuv**           m_ppcYuvResi;       ///< array of residual buffer
   TComYuv**           m_ppcYuvReco;       ///< array of prediction & reconstruction buffer
+#if LRSP
+  TComYuv**           m_ppcYuvBackground;     ///< Background Yuv for each depth
+#endif
   TComDataCU**        m_ppcCU;            ///< CU data array
   
   // access channel
@@ -103,7 +106,10 @@ protected:
   Void xIntraRecQT              ( TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv, const ChannelType chType, TComTU &rTu );
   
   Void xReconPCM                ( TComDataCU* pcCU, UInt uiDepth );
-
+#if LRSP
+  Void xCopyYuv2Pic(TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsPartIdx, UInt uiDepth, UInt uiSrcDepth, TComDataCU* pcCU, UInt uiLPelX, UInt uiTPelY);
+  Void xReconBGSkip             (TComDataCU* pcCU, UInt uiDepth);
+#endif
   Void xDecodeInterTexture      ( TComDataCU* pcCU, UInt uiDepth );
   Void xDecodePCMTexture        ( TComDataCU* pcCU, const UInt uiPartIdx, const Pel *piPCM, Pel* piReco, const UInt uiStride, const UInt uiWidth, const UInt uiHeight, const ComponentID compID);
   
