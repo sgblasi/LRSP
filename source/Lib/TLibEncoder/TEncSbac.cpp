@@ -580,6 +580,20 @@ Void TEncSbac::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   DTRACE_CABAC_T( "\n");
 }
 
+#if LRSP
+/** code skip flag
+* \param pcCU
+* \param uiAbsPartIdx
+* \returns Void
+*/
+Void TEncSbac::codeBGSkipFlag(TComDataCU* pcCU, UInt uiAbsPartIdx)
+{
+	// get context function is here
+	UInt uiSymbol = pcCU->isBGSkipped(uiAbsPartIdx) ? 1 : 0;
+	m_pcBinIf->encodeBinEP(uiSymbol);
+}
+#endif
+
 /** code merge flag
  * \param pcCU
  * \param uiAbsPartIdx

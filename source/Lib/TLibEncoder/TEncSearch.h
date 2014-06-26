@@ -181,7 +181,16 @@ public:
 #endif
                                   Distortion& ruiDistC,
                                   Bool        bLumaOnly
-                                  DEBUG_STRING_FN_DECLARE(sDebug));
+   
+								  DEBUG_STRING_FN_DECLARE(sDebug));
+
+#if LRSP==1
+  Void estBGSKIPResQT(TComDataCU* pcCU,
+	  TComYuv*    pcOrgYuv,
+	  TComYuv*    pcPredYuv,
+	  TComYuv*    pcResiYuv,
+	  TComYuv*    pcRecoYuv);
+#endif
 
   Void  estIntraPredChromaQT    ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 

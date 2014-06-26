@@ -2161,6 +2161,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   for(Int chan=0; chan<pcPicD->getNumberValidComponents(); chan++)
   {
     const ComponentID ch=ComponentID(chan);
+#if LRSP
+	const Pel*  pMsk    = (conversion!=IPCOLOURSPACE_UNCHANGED) ? pcPic ->getPicYuvTrueMsk()->getAddr(ch) : pcPic ->getPicYuvMsk()->getAddr(ch);
+	const Pel*  pBkg    = (conversion != IPCOLOURSPACE_UNCHANGED) ? pcPic->getPicYuvTrueBkg()->getAddr(ch) : pcPic->getPicYuvBkg()->getAddr(ch);
+	const Pel*  pSpr    = (conversion != IPCOLOURSPACE_UNCHANGED) ? pcPic->getPicYuvTrueSpr()->getAddr(ch) : pcPic->getPicYuvSpr()->getAddr(ch);
+#endif
     const Pel*  pOrg    = (conversion!=IPCOLOURSPACE_UNCHANGED) ? pcPic ->getPicYuvTrueOrg()->getAddr(ch) : pcPic ->getPicYuvOrg()->getAddr(ch);
     Pel*  pRec    = picd.getAddr(ch);
     const Int   iStride = pcPicD->getStride(ch);
@@ -2175,11 +2180,23 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     {
       for(Int x = 0; x < iWidth; x++ )
       {
+#if LRSP
+		  Intermediate_Int iDiff = 0;
+		  if (pMsk[x]==0)
+		    iDiff = (Intermediate_Int)(pBkg[x] - pRec[x]);
+		  else
+			iDiff = (Intermediate_Int)(pOrg[x] - pRec[x]);
+#else
         Intermediate_Int iDiff = (Intermediate_Int)( pOrg[x] - pRec[x] );
+#endif
         uiSSDtemp   += iDiff * iDiff;
       }
       pOrg += iStride;
       pRec += iStride;
+#if LRSP
+	  pMsk += iStride;
+	  pBkg += iStride;
+#endif
     }
     const Int maxval = 255 << (g_bitDepth[toChannelType(ch)] - 8);
     const Double fRefValue = (Double) maxval * maxval * iSize;

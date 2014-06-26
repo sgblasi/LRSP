@@ -183,6 +183,54 @@ Void TComYuv::copyPartToYuv( TComYuv* pcYuvDst, const UInt uiSrcPartIdx ) const
     copyPartToComponent  ( ComponentID(ch), pcYuvDst, uiSrcPartIdx );
 }
 
+#if LRSP
+Int TComYuv::checkLRSPmask(const ComponentID id, const UInt uiPartIdx)
+{
+	const Pel* pSrc = getAddr(id, uiPartIdx);
+	const UInt  iSrcStride = getStride(id);
+	const UInt uiHeight = getHeight(id);
+	const UInt uiWidth  = getWidth(id);
+	UInt uiTot = 0;
+
+	for (UInt y = uiHeight; y != 0; y--)
+	{
+		for (UInt x = 0; x != uiWidth; x++)
+		{
+			if (pSrc[x] > 0)
+				uiTot++;
+		}
+		pSrc += iSrcStride;
+	}
+	return uiTot;
+}
+
+Void TComYuv::generateOrgFromMsk(TComYuv* pcYuvMsk, TComYuv* pcYuvBkg, const ComponentID id, const UInt uiPartIdx)
+{
+	Pel* pSrc = getAddr(id);
+	Pel* pMsk = pcYuvMsk->getAddr(id);
+	Pel* pBkg = pcYuvBkg->getAddr(id);
+	const UInt  iSrcStride = getStride(id);
+	const UInt uiHeight = getHeight(id);
+	const UInt uiWidth = getWidth(id);
+	UInt uiTot = 0;
+
+	for (UInt y = uiHeight; y != 0; y--)
+	{
+		for (UInt x = 0; x != uiWidth; x++)
+		{
+			if (pMsk[x] == 0)
+			{
+				pSrc[x] = pBkg[x];
+			}
+		}
+		pSrc += iSrcStride;
+		pMsk += iSrcStride;
+		pBkg += iSrcStride;
+	}
+	return;
+}
+#endif
+
 Void TComYuv::copyPartToComponent( const ComponentID ch, TComYuv* pcYuvDst, const UInt uiSrcPartIdx ) const
 {
   const Pel* pSrc     = getAddr(ch, uiSrcPartIdx);

@@ -58,6 +58,12 @@ class TAppDecCfg
 protected:
   Char*         m_pchBitstreamFile;                     ///< input bitstream file name
   Char*         m_pchReconFile;                         ///< output reconstruction file name
+#if LRSP
+  Char*         m_pchBackgroundFile;
+  Int           m_iBackgroundWidth;
+  Int           m_iBackgroundHeight;
+  ChromaFormat   m_BackgroundChromaFormatIDC;
+#endif
   Int           m_iSkipFrame;                           ///< counter for frames prior to the random access point to skip
   Int           m_outputBitDepth[MAX_NUM_CHANNEL_TYPE]; ///< bit depth used for writing output
   InputColourSpaceConversion m_outputColourSpaceConvert;
@@ -72,6 +78,12 @@ public:
   TAppDecCfg()
   : m_pchBitstreamFile(NULL)
   , m_pchReconFile(NULL) 
+#if LRSP
+  , m_pchBackgroundFile(NULL)
+  , m_iBackgroundWidth(0)
+  , m_iBackgroundHeight(0)
+  , m_BackgroundChromaFormatIDC(NUM_CHROMA_FORMAT)
+#endif
   , m_iSkipFrame(0)
   , m_outputColourSpaceConvert(IPCOLOURSPACE_UNCHANGED)
   , m_iMaxTemporalLayer(-1)

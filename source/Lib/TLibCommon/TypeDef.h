@@ -131,6 +131,9 @@
 #endif
 #endif
 
+
+#define LRSP                                             1 ///< Use lowrank/sparse decomposition
+
 #define MAX_NUM_SAO_OFFSETS                               4
 
 #define MAX_NUM_VPS                                      16
@@ -258,7 +261,7 @@
 #define RExt__O0155_INTRA_BLOCK_COPY_CONSTRAINED_INTRA_PREDICTION              1 ///< 0 = allow intra-block-copy to predict from any CU type, 1 (default) = only allow intra-block-copy to predict from intra or intra-bc CU types.
 #define RExt__O0185_RESIDUAL_DPCM_FLAGS                                        1 ///< 0 = use one flag for intra RDPCM and one for inter, 1 (default) = use one flag to allow implicit signalling of RDPCM (for intra) and one for explicit signalling (inter and intra-block-copy)
 #define RExt__O0186_DISABLE_NONINTRA_ROTATION                                  1 ///< 0 = allow non-intra rotation, 1 (default) = disabled non-intra (inter,intrabc) rotation.
-#define RExt__O0202_CROSS_COMPONENT_DECORRELATION                              1 ///< 0 = disable cross-component decorrelation system, 1 (default) = allow use of cross-component decorrelation, controlled by PPS flag (and encoder command line)
+#define RExt__O0202_CROSS_COMPONENT_DECORRELATION                              0 ///< 0 = disable cross-component decorrelation system, 1 (default) = allow use of cross-component decorrelation, controlled by PPS flag (and encoder command line)
 #define RExt__O0235_HIGH_PRECISION_PREDICTION_WEIGHTING                        1 ///< 0 = do not use high precision prediction weighting (8-bit only), 1 (default) = allow use of high precision prediction weighting, based upon SPS flag.
 #define RExt__O0245_INTRABC_FAST_SEARCH_MODIFICATIONS                          1 ///< 0 = use original fast search method, 1 (default) = use modified fast search (only has an effect when INTRABC_FASTME is enabled)
 #define RExt__MEETINGNOTES_UNIFIED_RESIDUAL_DPCM                               1 ///< 0 = use residual DPCM for intra and coefficient DPCM for inter and intra-block-copy, 1 (default) = use residual DPCM for both intra and inter

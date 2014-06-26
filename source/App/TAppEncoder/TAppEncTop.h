@@ -60,6 +60,12 @@ private:
   // class interface
   TEncTop                    m_cTEncTop;                    ///< encoder class
   TVideoIOYuv                m_cTVideoIOYuvInputFile;       ///< input YUV file
+#if LRSP
+  TVideoIOYuv                m_cTVideoIOYuvBackgroundFile; ///< background YUV file
+  TVideoIOYuv                m_cTVideoIOYuvMaskFile; ///< background YUV file
+  TVideoIOYuv                m_cTVideoIOYuvSparseFile; ///< background YUV file
+#endif
+
   TVideoIOYuv                m_cTVideoIOYuvReconFile;       ///< output reconstruction file
   
   TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files

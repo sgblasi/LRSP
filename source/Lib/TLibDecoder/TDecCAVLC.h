@@ -85,6 +85,10 @@ public:
   Void parseMVPIdx          ( Int& riMVPIdx );
   
   Void parseSkipFlag        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+
+#if LRSP
+  Void parseBGSkipFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
+#endif
   Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void parseMergeIndex      ( TComDataCU* pcCU, UInt& ruiMergeIndex );
