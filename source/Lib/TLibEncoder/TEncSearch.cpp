@@ -2854,6 +2854,8 @@ TEncSearch::estIntraPredQT(TComDataCU* pcCU,
     pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
   }
 
+
+
   //===== loop over partitions =====
   TComTURecurse tuRecurseCU(pcCU, 0);
   TComTURecurse tuRecurseWithPU(tuRecurseCU, false, (uiInitTrDepth==0)?TComTU::DONT_SPLIT : TComTU::QUAD_SPLIT);
